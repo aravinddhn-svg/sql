@@ -109,5 +109,18 @@ group by customer_id,cons_trans
 
 
 
-q4:
+q4:4. More Than 10 Transactions in Any Rolling 24 Hours
+
+
+ 
+select customer_id from
+(
+select customer_id, txn_ts, txn_id,
+       count(*) over (partition by customer_id
+                      order by unix_seconds(txn_ts)
+                      range between 86400 preceding and current row) as cnt_24
+from txns
+)
+group by customer_id
+having count(cnt_24)>10
 
