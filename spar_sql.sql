@@ -34,7 +34,7 @@ AS t(txn_id, customer_id, txn_ts, status, amount);
 
 ----- select txn_ts,from_unixtime(unix_timestamp(txn_ts)) from txns;
 
-Q1: 
+Q1: consecutive transaction and no of trans it should not cross over 30 min
 
 select customer_id,min(txn_ts) as st_ts, max(txn_ts) as end_ts,session_id,count(*) as session_trans
 from
