@@ -34,7 +34,24 @@ AS t(txn_id, customer_id, txn_ts, status, amount);
 
 ----- select txn_ts,from_unixtime(unix_timestamp(txn_ts)) from txns;
 
-Q1: consecutive transaction and no of trans it should not cross over 30 min
+q1 --- Consectivie trans -
+
+  select customer_id,gap,count(*) cnt
+from
+(
+select 
+customer_id,txn_ts,date_sub(txn_ts,row_number() over(partition by customer_id order by txn_ts)) as gap
+from
+(select  distinct customer_id, to_date(txn_ts) as txn_ts from txns)
+
+)
+group by customer_id,gap
+
+q2:
+  
+  
+
+Q3: consecutive transaction and no of trans it should not cross over 30 min
 
 select customer_id,min(txn_ts) as st_ts, max(txn_ts) as end_ts,session_id,count(*) as session_trans
 from
@@ -73,4 +90,24 @@ C2	2026-11-01 18:00:00	2026-11-01 18:00:00	9	1
 C2	2026-11-01 20:00:00	2026-11-01 20:00:00	10	1
 C3	2026-11-01 10:00:00	2026-11-01 10:25:00	1	6
 
+
+q3: -- 3 consecutive sucess tarsn
+
+
+select customer_id, min(txn_ts) as st_dt, max(txn_ts) as end_ts,count(txn_id)
+from
+(
+select txn_id,customer_id,txn_ts, status,sum(rnk) over (partition by customer_id order by txn_ts ) cons_trans
+from
+(
+select txn_id,customer_id,status, txn_ts,case when status <> 'SUCCESS' then 1 else 0 end rnk
+from txns
+)
+)
+where status ='SUCCESS'
+group by customer_id,cons_trans
+
+
+
+q4:
 
