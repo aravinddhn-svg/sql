@@ -34,5 +34,43 @@ AS t(txn_id, customer_id, txn_ts, status, amount);
 
 ----- select txn_ts,from_unixtime(unix_timestamp(txn_ts)) from txns;
 
-Q1:
+Q1: 
+
+select customer_id,min(txn_ts) as st_ts, max(txn_ts) as end_ts,session_id,count(*) as session_trans
+from
+(
+
+select  customer_id,txn_ts,SUM(sess1) OVER (PARTITION BY customer_id ORDER BY txn_ts) AS session_id from
+(
+select customer_id,txn_ts,case when gap is null or gap > 30 then 1 else 0 end sess1 from
+(
+select *, lag(txn_ts) over(partition by customer_id order by txn_ts ) as rnk,
+timestampdiff(minute,lag(txn_ts) over(partition by customer_id order by txn_ts ),txn_ts) as gap
+from txns
+)
+)
+)
+group by customer_id,session_id
+order by customer_id,session_trans  desc
+
+O/p:
+cus  st                 end_ts    session_id  seesion_tran
+C1	2026-11-01 09:00:00	2026-11-01 09:25:00	1	4
+C1	2026-11-03 08:30:00	2026-11-03 08:50:00	4	2
+C1	2026-11-01 10:05:00	2026-11-01 10:05:00	2	1
+C1	2026-11-02 08:00:00	2026-11-02 08:00:00	3	1
+C1	2026-11-05 12:00:00	2026-11-05 12:00:00	5	1
+C1	2026-11-06 12:15:00	2026-11-06 12:15:00	6	1
+C2	2026-11-01 08:00:00	2026-11-01 08:15:00	1	2
+C2	2026-11-01 10:30:00	2026-11-01 11:00:00	3	2
+C2	2026-11-01 09:00:00	2026-11-01 09:00:00	2	1
+C2	2026-11-01 12:00:00	2026-11-01 12:00:00	4	1
+C2	2026-11-01 13:00:00	2026-11-01 13:00:00	5	1
+C2	2026-11-01 14:00:00	2026-11-01 14:00:00	6	1
+C2	2026-11-01 15:00:00	2026-11-01 15:00:00	7	1
+C2	2026-11-01 16:00:00	2026-11-01 16:00:00	8	1
+C2	2026-11-01 18:00:00	2026-11-01 18:00:00	9	1
+C2	2026-11-01 20:00:00	2026-11-01 20:00:00	10	1
+C3	2026-11-01 10:00:00	2026-11-01 10:25:00	1	6
+
 
