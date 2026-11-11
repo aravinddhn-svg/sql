@@ -31,5 +31,8 @@ SELECT * FROM VALUES
   ('T28','C3',TIMESTAMP '2026-11-01 10:25:00','SUCCESS',  12.0)
 AS t(txn_id, customer_id, txn_ts, status, amount);
 
+
+----- select txn_ts,from_unixtime(unix_timestamp(txn_ts)) from txns;
+
 Q1:
 
