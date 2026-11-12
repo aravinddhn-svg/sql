@@ -124,3 +124,61 @@ from txns
 group by customer_id
 having count(cnt_24)>10
 
+
+
+
+use case 2:
+
+
+
+CREATE OR REPLACE TEMPORARY VIEW order_items AS
+SELECT * FROM VALUES
+  ('O1','C1','I1',1),
+  ('O1','C1','I2',2),
+  ('O1','C1','I3',1),
+  ('O2','C1','I1',1),
+  ('O2','C1','I2',1),
+  ('O3','C2','I1',3),
+  ('O4','C2','I2',1),
+  ('O4','C2','I3',1)
+AS t(order_id, customer_id, item_id, qty);
+
+
+
+order_id            	string              	                    
+customer_id         	string              	                    
+item_id             	string              	                    
+qty                 	int     
+
+
+
+--q1 --
+select
+itm1,itm2, count(order_id) as order_cnt from
+(
+select o1.item_id as itm1,o2.item_id as itm2,o1.order_id
+from
+order_items o1
+join order_items o2
+on o1.order_id = o2.order_id
+and o1.item_id < o2.item_id
+order by o1.order_id
+)
+group by itm1,itm2
+
+
+
+-- q2 --
+
+
+SELECT customer_id,
+       COUNT(DISTINCT order_id) AS orders_with_item
+FROM order_items
+WHERE item_id = 'I2'
+GROUP BY customer_id
+HAVING COUNT(DISTINCT order_id) > 1;
+
+
+
+
+
